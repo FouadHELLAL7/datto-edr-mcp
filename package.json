@@ -1,0 +1,58 @@
+{
+  "name": "datto-edr-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Datto EDR (formerly Infocyte)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "datto-edr-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "prebuild": "npm run clean",
+    "dev": "tsup --watch",
+    "start": "node dist/index.js",
+    "start:http": "MCP_TRANSPORT=http node dist/http.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "tsc --noEmit && node scripts/lint-destructive-warnings.mjs src",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "prepare": "npm run build",
+    "pack:mcpb": "node scripts/pack-mcpb.cjs",
+    "validate:mcpb": "mcpb validate manifest.json"
+  },
+  "keywords": [
+    "datto",
+    "datto-edr",
+    "infocyte",
+    "edr",
+    "mcp",
+    "msp",
+    "security",
+    "model-context-protocol"
+  ],
+  "author": "Fouad Hellal",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FouadHELLAL7/datto-edr-mcp.git"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.0.5",
+    "tsup": "^8.5.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
