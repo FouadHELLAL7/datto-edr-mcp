@@ -24,8 +24,10 @@ Last updated: 2026-10-29
 
 ## Left / known issues
 
-- Docker is not installed on the build machine, so the image build and container smoke tests
-  run only in GitHub Actions (`Test` workflow, `docker` job). Check its result on GitHub.
+- GitHub Actions run #1 on commit 358ddc5: `Test` (lint, build, tests on Node 20/22, Docker
+  build + HTTP and stdio container smoke tests) and `Release` (image pushed to GHCR) both passed.
+- The first Dependabot runs for `docker` and `github-actions` failed because they ran on the
+  first commit, before the Dockerfile and workflows existed. The next weekly run should pass.
 - Not tested against a live Datto EDR instance. See "What to test against a live instance"
   in the README. Items that depend on the live API:
   - real model names for Organizations / Locations / Integrations (resolved from swagger);
