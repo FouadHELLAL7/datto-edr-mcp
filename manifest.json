@@ -1,0 +1,63 @@
+{
+  "manifest_version": "0.3",
+  "name": "datto-edr-mcp",
+  "version": "1.0.0",
+  "display_name": "Datto EDR MCP Server",
+  "description": "MCP server for Datto EDR (formerly Infocyte) - agents, alerts, target groups, organizations, scans, rules and response actions through AI assistants",
+  "long_description": "Provides AI assistants with structured access to your Datto EDR instance through its LoopBack API. Search agents, triage alerts, review target groups, organizations and locations, follow scans and tasks, list rules and extensions, and (with explicit confirmation) scan or isolate a host. Includes domain navigation, API model discovery, a read-only raw request escape hatch, retries with backoff, and clear error messages.",
+  "author": {
+    "name": "Fouad Hellal",
+    "url": "https://github.com/FouadHELLAL7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FouadHELLAL7/datto-edr-mcp"
+  },
+  "homepage": "https://github.com/FouadHELLAL7/datto-edr-mcp",
+  "license": "Apache-2.0",
+  "keywords": ["datto", "datto-edr", "infocyte", "edr", "msp", "security", "alerts"],
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/index.js"],
+      "env": {
+        "DATTO_EDR_URL": "${user_config.datto_edr_url}",
+        "DATTO_EDR_API_TOKEN": "${user_config.datto_edr_api_token}",
+        "DATTO_EDR_READ_ONLY": "${user_config.datto_edr_read_only}",
+        "MCP_TRANSPORT": "stdio"
+      }
+    }
+  },
+  "tools_generated": true,
+  "user_config": {
+    "datto_edr_url": {
+      "type": "string",
+      "title": "Datto EDR instance URL",
+      "description": "Your instance base URL, e.g. https://yourcompany.infocyte.com",
+      "required": true
+    },
+    "datto_edr_api_token": {
+      "type": "string",
+      "title": "Datto EDR API token",
+      "description": "Profile > Admin > Users & Tokens > API Tokens",
+      "required": true,
+      "sensitive": true
+    },
+    "datto_edr_read_only": {
+      "type": "boolean",
+      "title": "Read-only",
+      "description": "Hide the scan, isolate, restore and response tools",
+      "required": false,
+      "default": false
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=20.0.0"
+    },
+    "claude_desktop": ">=0.10.0"
+  }
+}

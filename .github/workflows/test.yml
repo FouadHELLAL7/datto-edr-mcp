@@ -1,0 +1,80 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test on Node.js ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter (typecheck + destructive tool warnings)
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+  docker:
+    name: Docker build and smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t datto-edr-mcp:test .
+
+      - name: Smoke test HTTP mode (health + tools/list through the gateway headers)
+        run: |
+          SECRET=$(openssl rand -hex 32)
+          docker run -d --name edr -p 8080:8080 -e CONDUIT_S2S_SECRET="$SECRET" datto-edr-mcp:test
+          for i in $(seq 1 30); do curl -fsS http://localhost:8080/health && break; sleep 1; done
+          echo
+          T=$(date +%s)
+          SIG=$(printf 't=%s' "$T" | openssl dgst -sha256 -hmac "$SECRET" -hex | awk '{print $NF}')
+          curl -fsS -X POST http://localhost:8080/mcp \
+            -H 'Content-Type: application/json' \
+            -H 'Accept: application/json, text/event-stream' \
+            -H "X-Gateway-S2S: t=$T,v1=$SIG" \
+            -H 'X-Datto-EDR-URL: https://example.infocyte.com' \
+            -H 'X-Datto-EDR-API-Token: dummy' \
+            -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' > tools.json
+          grep -q datto_edr_agents_list tools.json
+          # Without the S2S header the gateway endpoint must refuse.
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8080/mcp -H 'Content-Type: application/json' -d '{}')" = "401"
+          docker logs edr
+          docker rm -f edr
+
+      - name: Smoke test stdio mode
+        run: |
+          printf '%s\n' \
+            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"1"}}}' \
+            '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+            '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
+            | timeout 30 docker run -i --rm -e MCP_TRANSPORT=stdio datto-edr-mcp:test > stdio.out || true
+          grep -q datto_edr_agents_list stdio.out

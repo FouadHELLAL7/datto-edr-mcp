@@ -57,7 +57,7 @@ async function runResponse(
   if (!args.confirm) {
     return {
       executed: false,
-      message: `Would ${action} on ${args.target} by running extension "${ext.name ?? ext.id}". Call again with confirm: true to execute.`,
+      message: `Would ${action} ${args.target} by running extension "${ext.name ?? ext.id}". Call again with confirm: true to execute.`,
       request: { method: 'POST', path: '/api/targets/scan', body },
     };
   }
@@ -184,7 +184,7 @@ const tools = [
     },
     handler: async (args, client) => {
       if (!args.extension_id && !args.extension_name) throw new Error('Pass extension_id or extension_name.');
-      return runResponse(client, args, 'run a response action');
+      return runResponse(client, args, 'run a response action on');
     },
   }),
   defineTool({
@@ -193,7 +193,7 @@ const tools = [
     write: true,
     annotations: writeAnnotations,
     shape: { ...targetShape, ...confirmShape },
-    handler: async (args, client) => runResponse(client, { ...args, extension_name: 'Host Isolation' }, 'isolate the host'),
+    handler: async (args, client) => runResponse(client, { ...args, extension_name: 'Host Isolation' }, 'isolate'),
   }),
   defineTool({
     name: 'datto_edr_restore_host',
@@ -201,7 +201,7 @@ const tools = [
     write: true,
     annotations: writeAnnotations,
     shape: { ...targetShape, ...confirmShape },
-    handler: async (args, client) => runResponse(client, { ...args, extension_name: 'Host Isolation Restore' }, 'restore network access'),
+    handler: async (args, client) => runResponse(client, { ...args, extension_name: 'Host Isolation Restore' }, 'restore network access for'),
   }),
 ];
 
